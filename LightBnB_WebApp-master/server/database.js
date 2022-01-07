@@ -3,15 +3,15 @@ const users = require('./json/users.json');
 const {Pool} = require('pg');
 
 const pool = new Pool({
-  user: 'vagrant',
-  password: '123',
-  host: 'localhost',
-  database: 'lightbnb',
+  user: 'xnntuyjp',
+  password: '8C7z4wJEgkJsewL6hwSOVDJO-rUbwyig',
+  host: 'kashin.db.elephantsql.com',
+  database: 'xnntuyjp',
   port: 5432
 });
 
-/// Users
 
+/// Users
 
 /**
  * Get a single user from the database given their email.
@@ -49,19 +49,9 @@ const getUserWithId= function(id) {
      console.log(err.message, "---> get USER WITH IDERROR WITH THE USER ID SQL CODE <--- ");
      });
    };
-
-
+exports.getUserWithId = getUserWithId;
 /**
- * Add a new user to the database.
- * @param {{name: string, password: string, email: string}} user
- * @return {Promise<{}>} A promise to the user.
- */
-// const addUser =  function(user) {
-//   const userId = Object.keys(users).length + 1;
-//   user.id = userId;
-//   users[userId] = user;
-//   return Promise.resolve(user);
-// }
+ * Add a new user to the database. */
 
 const addUser = function(user) {
   return pool.query(
@@ -84,11 +74,27 @@ exports.addUser = addUser;
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
-}
-exports.getAllReservations = getAllReservations;
+// const getAllReservations = function(guest_id, limit = 10) {
+//   return getAllProperties(null, 2);
+// }
+// exports.getAllReservations = getAllReservations;
 
+const getAllReservations = function (guest_id, limit = 10) {
+  return pool.query(`
+  SELECT *
+  FROM reservations
+  JOIN properties ON properties.id = property_id
+  WHERE guest_id = $1
+  LIMIT $2;`,[guest_id, limit])
+.then((result) => { 
+  return result.rows;
+})
+.catch((err) => {
+console.log(err.message, "---> ERROR IN ALL <--- ");
+});
+};
+
+exports.getAllReservations = getAllReservations
 
 /// Properties
 
@@ -96,16 +102,13 @@ exports.getAllReservations = getAllReservations;
 //  * Get all properties
 
 const getAllProperties = (options, limit = 10) => {
-  pool
-    .query(`
-      SELECT *,
-      FROM properties
-      LIMIT = $1`, [limit])
+  return pool
+    .query(`SELECT * FROM properties LIMIT $1`, [limit])
     .then((result) => result.rows)
     .catch((err) => {
-    console.log(err.message);
+      console.log(err.message);
     });
-  };
+};
 
 exports.getAllProperties = getAllProperties;
 
@@ -118,9 +121,10 @@ const addProperty = function(property) {
   properties[propertyId] = property;
   return Promise.resolve(property);
 }
+exports.addProperty = addProperty;
 
 pool.connect(()=>{
   console.log("connected to database");
 });
 
-exports.addProperty = addProperty;
+
